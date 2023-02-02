@@ -42,6 +42,7 @@ public class TicketServiceImpl implements TicketService {
      * @param seatReservationService A service that allows seats to be reserved
      */
     public TicketServiceImpl(TicketPaymentService ticketPaymentService, SeatReservationService seatReservationService) {
+        // Could use dependency injection here to pass in specific service
         this.ticketPaymentService = ticketPaymentService;
         this.seatReservationService = seatReservationService;
     }
@@ -59,6 +60,10 @@ public class TicketServiceImpl implements TicketService {
         validateNumberOfTicketsDoesNotExceedMaximum(ticketTypeRequests);
         validateAdultToInfantRatioCorrect(ticketTypeRequests);
         validateChildOrInfantWithAdult(ticketTypeRequests);
+
+        // Getting seats first in case payment is taken and there are no seats left
+        // Would have to consider putting this in a Unit of Work pattern to rollback
+        // if concurrency issues occur.
         seatReservationService.reserveSeat(accountId, getNumberOfSeats(ticketTypeRequests));
         ticketPaymentService.makePayment(accountId, calculateTotalCostOfTickets(ticketTypeRequests));
     }
